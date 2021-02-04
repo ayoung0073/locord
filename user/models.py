@@ -31,15 +31,16 @@ class UserManager(BaseUserManager):
         user = self.model(
             nickname=nickname,
             email=self.normalize_email(email),
-            password=password,
+            is_staff=True,
+            is_superuser=True,
+            is_admin=True
         )
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_admin', True)
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        user.set_password(password)
+        # extra_fields.setdefault('is_staff', True)
+        # extra_fields.setdefault('is_superuser', True)
+        # extra_fields.setdefault('is_admin', True)
+        # if extra_fields.get('is_staff') is not True:
+        #     raise ValueError('Superuser must have is_superuser=True.')
 
         user.save(using=self._db)
         return user
@@ -72,6 +73,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_('Designates whether the user can log into this admin site.'),
     )
+    is_superuser = models.BooleanField(
+        _('superuser status'),
+        default=False,
+        help_text=_('Designates whether the user can log into this admin site.'),
+    )
+    is_admin = models.BooleanField(
+        _('admin status'),
+        default=False,
+        help_text=_('Designates whether the user can log into this admin site.'),
+    )
     is_active = models.BooleanField(
         _('active'),
         default=True,
@@ -92,7 +103,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ordering = ('-date_joined',)
 
     def __str__(self):
-        return self.email
+        return self.email 
 
     def get_full_name(self):        
         return self.nickname
