@@ -26,6 +26,7 @@ class UserLoginSerializer(serializers.Serializer):
                 'email': 'None'
             }
         try:
+            #encoded_jwt = jwt.encode({'id': new_user_info.id}, wef_key, algorithm='HS256') # jwt토큰 발행
             payload = JWT_PAYLOAD_HANDLER(user)
             jwt_token = JWT_ENCODE_HANDLER(payload)
             update_last_login(None, user)

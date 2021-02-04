@@ -91,6 +91,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             'Unselect this instead of deleting accounts.'
         ),
     )
+    oauth = models.IntegerField( # 0 : 회원가입, 1 : 구글, 2 : 카카오
+        default=0
+    )
     objects = UserManager()
 
     #EMAIL_FIELD = 'email'
