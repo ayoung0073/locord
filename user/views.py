@@ -16,6 +16,10 @@ from rest_framework_jwt.settings import api_settings
 import requests
 import json
 
+from pathlib import Path
+import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 JWT_PAYLOAD_HANDLER = api_settings.JWT_PAYLOAD_HANDLER
 JWT_ENCODE_HANDLER = api_settings.JWT_ENCODE_HANDLER
 
@@ -50,12 +54,24 @@ def oauth(request):
     code = request.GET['code']
     print('code = ' + str(code))
 
-    client_id = '582d94458100da17890f0de665515131'
+    secret_file = os.path.join(BASE_DIR, 'secrets.json')
+
+    with open(secret_file) as f:
+        secrets = json.loads(f.read())
+    def get_secret(setting, secrets=secrets):
+        try:
+            return secrets[setting]
+        except KeyError:
+            error_msg = "Set the {} environment variable".format(setting)
+            raise ImproperlyConfigured(error_msg)
+
+    KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
+    #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
+
     redirect_uri = 'http://127.0.0.1:8000/user/login/kakao/callback'
-    client_secret = 'qnELmJDf7XboheN32IU611UgkL4wu8Bh' # REST API일 시, 애플리케이션 > 카카오 로그인 > 보안 에서 키 발급
     # 토큰 받아오기
     access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
-    access_token_request_uri += 'client_id=' + client_id
+    access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
     access_token_request_uri += '&code=' + code
     access_token_request_uri += '&redirect_uri=' + redirect_uri
     # access_token_request_uri += '&client_secret=' + client_secret
@@ -77,7 +93,8 @@ def oauth(request):
     email = json_data['kakao_account']['email']
 
     print(nickname, email)
-    
+
+
     if User.objects.filter(email=email).exists():
         user = User.objects.get(email=email)
         print('login')
