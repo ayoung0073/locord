@@ -58,7 +58,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(
         verbose_name=_('Nickname'),
         max_length=30,
-        unique=True
     )
     is_active = models.BooleanField(
         verbose_name=_('Is active'),

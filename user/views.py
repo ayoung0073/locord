@@ -50,7 +50,7 @@ def login(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def oauth(request):
+def oauth_kakao(request):
     code = request.GET['code']
     print('code = ' + str(code))
 
@@ -101,7 +101,82 @@ def oauth(request):
     else:
         user = User.objects.create(
             email=email,
-            nickname=nickname
+            nickname=nickname,
+            oauth=2
+        )
+        user.save()
+
+    payload = JWT_PAYLOAD_HANDLER(user)
+    jwt_token = JWT_ENCODE_HANDLER(payload)
+
+    response = {
+        'success' : True, 
+        'token' : jwt_token
+    }
+
+    return Response(response, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def oauth_google(request):
+    code = request.GET['code']
+    print('code = ' + str(code))
+
+    secret_file = os.path.join(BASE_DIR, 'secrets.json')
+
+    with open(secret_file) as f:
+        secrets = json.loads(f.read())
+    def get_secret(setting, secrets=secrets):
+        try:
+            return secrets[setting]
+        except KeyError:
+            error_msg = "Set the {} environment variable".format(setting)
+            raise ImproperlyConfigured(error_msg)
+
+    GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = get_secret("GOOGLE_CLIENT_SECRET")
+
+    redirect_uri = 'http://127.0.0.1:8000/user/login/google/callback'
+
+    headers = ({'Authorization' : f"Bearer {code}"})
+
+    # 토큰 받아오기
+    access_token_request_uri = 'https://oauth2.googleapis.com/token?grant_type=authorization_code'
+    access_token_request_uri += '&client_id=' + GOOGLE_CLIENT_ID
+    access_token_request_uri += '&client_secret=' + GOOGLE_CLIENT_SECRET
+    access_token_request_uri += '&code=' + code
+    access_token_request_uri += '&redirect_uri=' + redirect_uri
+    access_token_request_uri += '&scope=https://www.googleapis.com/auth/userinfo.profile'
+
+    # access_token_request_uri += '&client_secret=' + client_secret
+
+    access_token_request_uri_data = requests.post(access_token_request_uri, headers=headers)
+    json_data = access_token_request_uri_data.json()
+    access_token = json_data['access_token']
+
+    # 프로필 정보 받아오기
+    headers = ({'Authorization' : f"Bearer {access_token}"})
+
+    user_profile_info_uri = 'https://www.googleapis.com/oauth2/v3/userinfo'
+    user_profile_info = requests.get(user_profile_info_uri, headers=headers)
+
+    json_data = user_profile_info.json() 
+    # print(json_data)    
+    nickname = json_data['name']
+    email = json_data['email']
+
+    print(nickname, email)
+
+
+    if User.objects.filter(email=email).exists():
+        user = User.objects.get(email=email)
+        print('login')
+    else:
+        user = User.objects.create(
+            email=email,
+            nickname=nickname,
+            oauth=1
         )
         user.save()
 
