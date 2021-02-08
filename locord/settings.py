@@ -15,9 +15,10 @@ import datetime
 import os # secret key
 import json
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+from django.core.exceptions import ImproperlyConfigured
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,6 +29,7 @@ secret_file = os.path.join(BASE_DIR, 'secrets.json')
 
 with open(secret_file) as f:
     secrets = json.loads(f.read())
+
 def get_secret(setting, secrets=secrets):
     try:
         return secrets[setting]
@@ -122,12 +124,7 @@ WSGI_APPLICATION = 'locord.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+DATABASES = get_secret("DB_SETTINGS")
 
 
 # Password validation
