@@ -15,8 +15,9 @@ import datetime
 import os # secret key
 import json
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
