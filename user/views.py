@@ -57,13 +57,10 @@ def login(request):
         }
         return Response(response, status=status.HTTP_200_OK)
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def oauth_kakao(request):
     try:
-        code = request.GET['code']
-        print('code = ' + str(code))
-
         secret_file = os.path.join(BASE_DIR, 'secrets.json')
 
         with open(secret_file) as f:
@@ -75,38 +72,50 @@ def oauth_kakao(request):
                 error_msg = "Set the {} environment variable".format(setting)
                 raise ImproperlyConfigured(error_msg)
 
-        KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
-        #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
+        # KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
+        # #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
 
-        redirect_uri = 'http://127.0.0.1:8000/user/login/kakao/callback'
-        # 토큰 받아오기
-        access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
-        access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
-        access_token_request_uri += '&code=' + code
-        access_token_request_uri += '&redirect_uri=' + redirect_uri
-        # access_token_request_uri += '&client_secret=' + client_secret
+        # redirect_uri = 'http://127.0.0.1:8000/user/login/kakao/callback'
+        # # 토큰 받아오기
+        # access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
+        # access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
+        # access_token_request_uri += '&code=' + code
+        # access_token_request_uri += '&redirect_uri=' + redirect_uri
+        # # access_token_request_uri += '&client_secret=' + client_secret
 
-        try:
-            access_token_request_uri_data = requests.get(access_token_request_uri)
-            json_data = access_token_request_uri_data.json()
-            print(json_data)
-            access_token = json_data.get('access_token', None)
+        # try:
+        #     access_token_request_uri_data = requests.get(access_token_request_uri)
+        #     json_data = access_token_request_uri_data.json()
+        #     print(json_data)
+        #     access_token = json_data.get('access_token', None)
 
-            if access_token is None:
-                raise TokenException()
-
-            # 프로필 정보 받아오기
-            headers = ({'Authorization' : f"Bearer {access_token}"})
+        #     if access_token is None:
+        #         raise TokenException()
 
 
-        except TokenException:
+
+
+        # except TokenException:
+        #     response = {
+        #         'success':False,
+        #         'message':'카카오 인증 실패'
+        #     }
+        #     return Response(response, status=500)
+
+        
+        access_token_data = json.loads(request.body)
+        access_token = access_token_data.get('access_token', None)
+
+        if access_token is None:
             response = {
-                'success':False,
-                'message':'카카오 인증 실패'
+                'success': False,
+                'message': '카카오 로그인에 실패했습니다.'
             }
-            return Response(response, status=500)
+            return Response(response, status=status.HTTP_400_OK)
 
-            
+        # 프로필 정보 받아오기
+        headers = ({'Authorization' : f"Bearer {access_token}"})
+
         user_profile_info_uri = 'https://kapi.kakao.com/v2/user/me'
         user_profile_info = requests.get(user_profile_info_uri, headers=headers)
 
@@ -117,7 +126,6 @@ def oauth_kakao(request):
         kakao_profile = kakao_account.get('profile')
         nickname = kakao_profile.get('nickname', None)
         email = kakao_account.get('email', None)
-
 
         if email is None:
             raise KakaoException() # 이메일은 필수제공 항목이 아니어서, 수정 필요함
