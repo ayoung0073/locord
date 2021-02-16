@@ -57,10 +57,13 @@ def login(request):
         }
         return Response(response, status=status.HTTP_200_OK)
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def oauth_kakao(request):
     try:
+        code = request.GET['code']
+        print('code = ' + str(code))
+
         secret_file = os.path.join(BASE_DIR, 'secrets.json')
 
         with open(secret_file) as f:
@@ -72,50 +75,38 @@ def oauth_kakao(request):
                 error_msg = "Set the {} environment variable".format(setting)
                 raise ImproperlyConfigured(error_msg)
 
-        # KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
-        # #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
+        KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
+        #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
 
-        # redirect_uri = 'http://127.0.0.1:8000/user/login/kakao/callback'
-        # # 토큰 받아오기
-        # access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
-        # access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
-        # access_token_request_uri += '&code=' + code
-        # access_token_request_uri += '&redirect_uri=' + redirect_uri
-        # # access_token_request_uri += '&client_secret=' + client_secret
+        redirect_uri = 'http://9bd2cc92bbd0.ngrok.io/user/login/kakao'
+        # 토큰 받아오기
+        access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
+        access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
+        access_token_request_uri += '&code=' + code
+        access_token_request_uri += '&redirect_uri=' + redirect_uri
+        # access_token_request_uri += '&client_secret=' + client_secret
 
-        # try:
-        #     access_token_request_uri_data = requests.get(access_token_request_uri)
-        #     json_data = access_token_request_uri_data.json()
-        #     print(json_data)
-        #     access_token = json_data.get('access_token', None)
+        try:
+            access_token_request_uri_data = requests.get(access_token_request_uri)
+            json_data = access_token_request_uri_data.json()
+            print(json_data)
+            access_token = json_data.get('access_token', None)
 
-        #     if access_token is None:
-        #         raise TokenException()
+            if access_token is None:
+                raise TokenException()
+
+            # 프로필 정보 받아오기
+            headers = ({'Authorization' : f"Bearer {access_token}"})
 
 
-
-
-        # except TokenException:
-        #     response = {
-        #         'success':False,
-        #         'message':'카카오 인증 실패'
-        #     }
-        #     return Response(response, status=500)
-
-        
-        access_token_data = json.loads(request.body)
-        access_token = access_token_data.get('access_token', None)
-
-        if access_token is None:
+        except TokenException:
             response = {
-                'success': False,
-                'message': '카카오 로그인에 실패했습니다.'
+                'success':False,
+                'message':'카카오 인증 실패'
             }
-            return Response(response, status=status.HTTP_400_OK)
+            return Response(response, status=500)
 
-        # 프로필 정보 받아오기
-        headers = ({'Authorization' : f"Bearer {access_token}"})
-
+            
         user_profile_info_uri = 'https://kapi.kakao.com/v2/user/me'
         user_profile_info = requests.get(user_profile_info_uri, headers=headers)
 
@@ -126,6 +117,7 @@ def oauth_kakao(request):
         kakao_profile = kakao_account.get('profile')
         nickname = kakao_profile.get('nickname', None)
         email = kakao_account.get('email', None)
+
 
         if email is None:
             raise KakaoException() # 이메일은 필수제공 항목이 아니어서, 수정 필요함
@@ -163,6 +155,106 @@ def oauth_kakao(request):
             'message':'이메일은 필수 항목입니다.'
         }
         return Response(response, status=400)
+    # try:
+    #     secret_file = os.path.join(BASE_DIR, 'secrets.json')
+
+    #     with open(secret_file) as f:
+    #         secrets = json.loads(f.read())
+    #     def get_secret(setting, secrets=secrets):
+    #         try:
+    #             return secrets[setting]
+    #         except KeyError:
+    #             error_msg = "Set the {} environment variable".format(setting)
+    #             raise ImproperlyConfigured(error_msg)
+
+    #     KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
+    #     #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
+
+    #     redirect_uri = 'http://9bd2cc92bbd0.ngrok.io/user/login/kakao'
+    #     # 토큰 받아오기
+    #     access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
+    #     access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
+    #     access_token_request_uri += '&code=' + code
+    #     access_token_request_uri += '&redirect_uri=' + redirect_uri
+    #     # access_token_request_uri += '&client_secret=' + client_secret
+
+    #     try:
+    #         access_token_request_uri_data = requests.get(access_token_request_uri)
+    #         json_data = access_token_request_uri_data.json()
+    #         print(json_data)
+    #         access_token = json_data.get('access_token', None)
+
+    #         if access_token is None:
+    #             raise TokenException()
+
+    #     except TokenException:
+    #         response = {
+    #             'success':False,
+    #             'message':'카카오 인증 실패'
+    #         }
+    #         return Response(response, status=500)
+
+        
+    #     access_token_data = json.loads(request.body)
+    #     access_token = access_token_data.get('access_token', None)
+
+    #     if access_token is None:
+    #         response = {
+    #             'success': False,
+    #             'message': '카카오 로그인에 실패했습니다.'
+    #         }
+    #         return Response(response, status=status.HTTP_400_OK)
+
+    #     # 프로필 정보 받아오기
+    #     headers = ({'Authorization' : f"Bearer {access_token}"})
+
+    #     user_profile_info_uri = 'https://kapi.kakao.com/v2/user/me'
+    #     user_profile_info = requests.get(user_profile_info_uri, headers=headers)
+
+    #     json_data = user_profile_info.json() 
+    #     print(json_data)    
+    #     kakao_account = json_data.get('kakao_account')
+
+    #     kakao_profile = kakao_account.get('profile')
+    #     nickname = kakao_profile.get('nickname', None)
+    #     email = kakao_account.get('email', None)
+
+    #     if email is None:
+    #         raise KakaoException() # 이메일은 필수제공 항목이 아니어서, 수정 필요함
+
+    #     if nickname is None:
+    #         nickname = email # 이름이 비어있는 경우, email로 대체
+
+    #     print(nickname, email)
+
+    #     if User.objects.filter(email=email).exists():
+    #         user = User.objects.get(email=email)
+    #         print('login')
+
+    #     else:
+    #         user = User.objects.create(
+    #             email=email,
+    #             nickname=nickname,
+    #             oauth=2
+    #         )
+    #         user.save()
+
+    #     payload = JWT_PAYLOAD_HANDLER(user)
+    #     jwt_token = JWT_ENCODE_HANDLER(payload)
+
+    #     response = {
+    #         'success' : True, 
+    #         'token' : jwt_token
+    #     }
+
+    #     return Response(response, status=200)
+
+    # except KakaoException:
+    #     response = {
+    #         'success':False,
+    #         'message':'이메일은 필수 항목입니다.'
+    #     }
+    #     return Response(response, status=400)
 
 
 @api_view(['GET'])
@@ -186,14 +278,15 @@ def oauth_google(request):
         GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
         GOOGLE_CLIENT_SECRET = get_secret("GOOGLE_CLIENT_SECRET")
 
-        redirect_uri = 'http://127.0.0.1:8000/user/login/google/callback'
+        # redirect_uri = 'http://127.0.0.1:8000/user/login/google'
+        redirect_uri = 'http://9bd2cc92bbd0.ngrok.io/user/login/google'
 
         headers = ({'Authorization' : f"Bearer {code}"})
 
         # 토큰 받아오기
         access_token_request_uri = 'https://oauth2.googleapis.com/token?grant_type=authorization_code'
         access_token_request_uri += '&client_id=' + GOOGLE_CLIENT_ID
-        access_token_request_uri += '&client_secret=' + GOOGLE_CLIENT_SECRET
+        access_token_request_uri += '&client_secret=' + GOOGLE_CLIENT_SECRET 
         access_token_request_uri += '&code=' + code
         access_token_request_uri += '&redirect_uri=' + redirect_uri
         access_token_request_uri += '&scope=https://www.googleapis.com/auth/userinfo.profile'
