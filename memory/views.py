@@ -6,13 +6,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Memory
 from .serializers import MemorySerializer
+#from .permissions import IsAuthenticatedOrSuperUser
 
 # Create your views here.
 class MemoryList(APIView):
     """
     List all Memory or create a new Memory
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
     def get(self, request, format=None):
@@ -31,7 +32,7 @@ class MemoryDetail(APIView):
     """
     Retrieve, update or delete a Memory instance
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
     def get_object(self, pk):
