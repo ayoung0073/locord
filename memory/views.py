@@ -1,3 +1,4 @@
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from django.http import Http404
 from django.shortcuts import render
@@ -6,13 +7,14 @@ from rest_framework import status
 from .models import Memory
 from .serializers import MemorySerializer
 
-
-
 # Create your views here.
 class MemoryList(APIView):
     """
     List all Memory or create a new Memory
     """
+    permission_classes = [IsAuthenticated]
+
+
     def get(self, request, format=None):
         memories = Memory.objects.all()
         serializer = MemorySerializer(memories, many=True)
@@ -29,6 +31,8 @@ class MemoryDetail(APIView):
     """
     Retrieve, update or delete a Memory instance
     """
+    permission_classes = [IsAuthenticated]
+
 
     def get_object(self, pk):
         try:
