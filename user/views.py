@@ -35,10 +35,14 @@ class GoogleException(Exception):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
-    serializer = UserCreateSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
-        return Response(serializer.data, status=201)
+    
+    if User.objects.filter(email=request.data['email']).exists():
+        return Response({'message':'이미 존재하는 email입니다'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        serializer = UserCreateSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=201)
 
 
 @api_view(['POST'])
