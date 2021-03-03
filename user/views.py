@@ -1,7 +1,7 @@
 from rest_framework import status, exceptions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView, status
 
 from .serializers import UserCreateSerializer, UserLoginSerializer
@@ -82,7 +82,7 @@ def oauth_kakao(request):
         KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
         #KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
 
-        redirect_uri = 'http://9bd2cc92bbd0.ngrok.io/user/login/kakao'
+        redirect_uri = 'http://127.0.0.1:8000/user/login/kakao'
         # 토큰 받아오기
         access_token_request_uri = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&'
         access_token_request_uri += 'client_id=' + KAKAO_CLIENT_ID
@@ -282,8 +282,8 @@ def oauth_google(request):
         GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
         GOOGLE_CLIENT_SECRET = get_secret("GOOGLE_CLIENT_SECRET")
 
-        # redirect_uri = 'http://127.0.0.1:8000/user/login/google'
-        redirect_uri = 'http://9bd2cc92bbd0.ngrok.io/user/login/google'
+        redirect_uri = 'http://127.0.0.1:8000/user/login/google'
+        # redirect_uri = 'http://9bd2cc92bbd0.ngrok.io/user/login/google'
 
         headers = ({'Authorization' : f"Bearer {code}"})
 
