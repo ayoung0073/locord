@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'requests',
     'user',
     'memory',
+    'django_filters',
 ]
 
 AUTH_USER_MODEL = 'user.User'
