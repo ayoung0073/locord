@@ -1,10 +1,11 @@
-from rest_framework.urlpatterns import format_suffix_patterns
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework import routers
+from .views import MemoryViewSet
+
+router = routers.DefaultRouter()
+router.register(r'memories', MemoryViewSet)
 
 urlpatterns = [
-    path('memories/', views.MemoryList.as_view()),
-    path('memories/<int:pk>/', views.MemoryDetail.as_view())
+    path('', include(router.urls)),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)
