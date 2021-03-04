@@ -8,24 +8,22 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Memory, User
 from .serializers import MemorySerializer
-
-permission_classes = [IsAuthenticated]
-
-# Create your views here.
+from django_filters.rest_framework import FilterSet, filters, DjangoFilterBackend
 
 class MemoryViewSet(viewsets.ModelViewSet):
     serializer_class = MemorySerializer
+    filter_fields = ('lon', 'lat')
+    permission_classes = [IsAuthenticated]
     queryset = Memory.objects.all()
 
-    #각각의 사용자들의 memories 반환 & 필터링
-    @action(detail=False, url_path='user-memory') #GET 특정 사용자의 객체들
+    #GET memories/user-memory -> 각 사용자의 memory 객체 반환
+    @action(detail=False, url_path='user-memory')
     def user_memory(self, request):
         user_id = User.objects.get(email=request.user).id
-        memories = Memory.objects.filter(user_id=user_id)
+        memories = self.filter_queryset(self.get_queryset()).filter(user_id=user_id) #filter
         serializer = MemorySerializer(memories, many=True)
         return Response(serializer.data)
 
-    #post 시 설정 -> user_id 부분 넣어줘야 함
     def create(self, request, *args, **kwargs):
         request.data._mutable = True # 임시로 mutable 변경
         request.data['user'] = User.objects.get(email=request.user).id  # 인증된 사용자 정보 저장
@@ -48,7 +46,7 @@ class MemoryViewSet(viewsets.ModelViewSet):
         return True, memory
     """
 
-    #PATCH 특정 memory 객체 수정 partial update ?
+    #PATCH 특정 memory 객체 수정
     def partial_update(self, request, *args, **kwargs):
         request.data._mutable = True  # 임시로 mutable 변경
         request.data['user'] = User.objects.get(email=request.user).id  # 인증된 사용자 정보 저장
