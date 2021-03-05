@@ -2,13 +2,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from django.http import Http404
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Memory, User
 from .serializers import MemorySerializer
-from django_filters.rest_framework import FilterSet, filters, DjangoFilterBackend
 
 class MemoryViewSet(viewsets.ModelViewSet):
     serializer_class = MemorySerializer
@@ -34,7 +31,6 @@ class MemoryViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
     def check_user(self, request):
         memory = self.get_object()
