@@ -105,7 +105,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ordering = ('-date_joined',)
 
     def __str__(self):
-        return self.email 
+        return self.email
 
     def get_full_name(self):        
         return self.nickname
